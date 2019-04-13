@@ -56,6 +56,21 @@ app.get('/users', (req, res) => {
   });
 });
 
+app.get('/login', (req, res) => {
+  const { email, password } = req.query;
+  const TRY_LOGIN_Q = `SELECT user_id FROM users where
+    email='${email}' AND password='${password}'`;
+  connection.query(TRY_LOGIN_Q, (err, results) => {
+    if(err) {
+      return res.send(err);
+    } else {
+      return res.send({
+        data: results
+      })
+    }
+  });
+});
+
 app.listen(4000, () => {
   console.log('MPR server listening on port 4000');
 });
