@@ -99,12 +99,15 @@ app.get('/donate', (req, res) => {
   const SET_BUCKET_BALANCE_Q = `UPDATE users SET
     balance = balance + ${amount * .01} WHERE email = 'bucket'`;
   const SET_CHARITY_VOTES_Q = `UPDATE users SET
-    balance = balance + ${amount} WHERE email = '${charity}'`
+    balance = balance + ${amount} WHERE email = '${charity}'`;
+  const CREATE_TRANSACTION_Q = `INSERT INTO transactions (sender_id, receiver_id, amount, timestamp) VALUES (
+    (select user_id from users where email='${sender_email}'),
+    ${receiver_id}, ${amount}, NOW())`;
   connection.query(SET_CHARITY_VOTES_Q, (err, results) => {
     if(err) {
       return res.send(err);
     }
-  })
+  });
   connection.query(SET_SENDER_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
@@ -114,7 +117,12 @@ app.get('/donate', (req, res) => {
     if(err) {
       return res.send(err);
     }
-  })
+  });
+  connection.query(CREATE_TRANSACTION_Q, (err, results) => {
+    if(err) {
+      return res.send(err);
+    }
+  });
   connection.query(SET_RECEIVER_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
