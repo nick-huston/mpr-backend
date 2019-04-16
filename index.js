@@ -31,10 +31,10 @@ app.get('/', (req, res) => {
 app.get('/users/add', (req, res) => {
   const { email, password } = req.query;
   const INSERT_PRODUCTS_Q = `INSERT INTO users 
-    (email, password) values ('${email}', SHA1('${password}'))`
+    (email, password, balance) values ('${email}', SHA1('${password}'), 3000)`
   connection.query(INSERT_PRODUCTS_Q, (err, results) => {
     if(err) {
-      return res.send(err);
+      return res.send('error');
     } else {
       return res.send('successfully added user');
     }
@@ -90,21 +90,27 @@ app.get('/login', (req, res) => {
 
 /* Transfer funds */
 app.get('/donate', (req, res) => {
-  console.log('/donate')
   let { sender_email, receiver_id, amount, charity } = req.query;
   if (charity === '') charity = `charity${Math.floor(Math.random() * Math.floor(3))+1}`
   const SET_SENDER_BALANCE_Q = `UPDATE users SET 
     balance = balance - ${amount}, bracket = bracket + 1 WHERE email = '${sender_email}'`;
   const SET_RECEIVER_BALANCE_Q = `UPDATE users SET
     balance = balance + ${amount * .99} WHERE user_id = ${receiver_id}`;
-  const SET_CHARITY_BALANCE_Q = `UPDATE users SET
-    balance = balance + ${amount * .01} WHERE email = '${charity}'`;
+  const SET_BUCKET_BALANCE_Q = `UPDATE users SET
+    balance = balance + ${amount * .01} WHERE email = 'bucket'`;
+  const SET_CHARITY_VOTES_Q = `UPDATE users SET
+    balance = balance + ${amount} WHERE email = '${charity}'`
+  connection.query(SET_CHARITY_VOTES_Q, (err, results) => {
+    if(err) {
+      return res.send(err);
+    }
+  })
   connection.query(SET_SENDER_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
     }
   });
-  connection.query(SET_CHARITY_BALANCE_Q, (err, results) => {
+  connection.query(SET_BUCKET_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
     }
@@ -116,6 +122,17 @@ app.get('/donate', (req, res) => {
       return res.send('funds transferred');
     }
   });
+})
+
+/* Update account info */
+app.get('/users/update', (req, res) => {
+  let UPDATE_USER_Q = `UPDATE users SET `;
+  let { user_id, email, password, age, location, gender, profile_picture } = req.query;
+  [user_id, email, password, age, location, gender, profile_picture].forEach(item => {
+    if (item !== undefined) {
+      UPDATE_USER_Q 
+    }
+  })
 })
 
 app.listen(4000, () => {
