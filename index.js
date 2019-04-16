@@ -91,18 +91,24 @@ app.get('/login', (req, res) => {
 /* Transfer funds */
 app.get('/donate', (req, res) => {
   console.log('/donate')
-  const { sender_email, receiver_id, amount, charity_int } = req.query;
+  let { sender_email, receiver_id, amount, charity } = req.query;
+  if (charity === '') charity = `charity${Math.floor(Math.random() * Math.floor(3))+1}`
   const SET_SENDER_BALANCE_Q = `UPDATE users SET 
     balance = balance - ${amount}, bracket = bracket + 1 WHERE email = '${sender_email}'`;
   const SET_RECEIVER_BALANCE_Q = `UPDATE users SET
     balance = balance + ${amount * .99} WHERE user_id = ${receiver_id}`;
   const SET_CHARITY_BALANCE_Q = `UPDATE users SET
-    balance = balance + ${amount * .01} WHERE email = 'charity${charity_int}`;
+    balance = balance + ${amount * .01} WHERE email = '${charity}'`;
   connection.query(SET_SENDER_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
     }
   });
+  connection.query(SET_CHARITY_BALANCE_Q, (err, results) => {
+    if(err) {
+      return res.send(err);
+    }
+  })
   connection.query(SET_RECEIVER_BALANCE_Q, (err, results) => {
     if(err) {
       return res.send(err);
