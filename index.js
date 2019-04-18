@@ -45,12 +45,18 @@ app.get('/users/add', (req, res) => {
 
 /* Fetch all users */
 app.get('/users', (req, res) => {
-  connection.query(SELECT_ALL_USERS_Q, (err, results) => {
+  let Q = SELECT_ALL_USERS_Q;
+  if (Object.is(req.query, {})) {
+    let { exclude } = req.query;
+    Q += ` WHERE email != '${exclude}'`
+  }
+  connection.query(Q, (err, results) => {
     if(err) {
       return res.send(err)
     } else {
       return res.json({
-        data: results
+        data: results,
+        query: Q
       });
     }
   });
